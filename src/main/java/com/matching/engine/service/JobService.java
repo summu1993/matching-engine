@@ -6,13 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,12 +29,14 @@ public class JobService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Returns the available jobs from Job Service api
-     * @return Jobs from the Job Service
-     */
     public Set<JobDTO> getJobs() {
         try {
+
+            List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+            MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+            converter.setSupportedMediaTypes(Collections.singletonList(MediaType.ALL));
+            messageConverters.add(converter);
+            restTemplate.setMessageConverters(messageConverters);
             ResponseEntity<JobDTO[]> jobResponse = restTemplate.getForEntity(configs.getJobResourceUrl(), JobDTO[].class);
 
             if (HttpStatus.OK != jobResponse.getStatusCode()) {
